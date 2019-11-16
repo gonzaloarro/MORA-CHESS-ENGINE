@@ -55,6 +55,7 @@ namespace Evaluation {
 	constexpr int bishop_pair = 32;
 	constexpr int move_bonus = 25;
 	constexpr int rook_in_semiopen_file = 20;
+	constexpr int rook_in_open_file = 40;
 	// King safety
 	constexpr int king_in_the_center = 40;
 	constexpr int king_zone_attacked = 30;
@@ -424,8 +425,12 @@ namespace Evaluation {
 			occupancy >>= 52;
 			piece_mobility += rook_mobility[occupancy][rook_index];
 			// Semi open file bonus
-			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN)))
-				score += rook_in_semiopen_file;
+			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN))) {
+				if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN)))
+					score += rook_in_open_file;
+				else
+					score += rook_in_semiopen_file;
+			}
 			white_rooks &= white_rooks - 1;
 		}
 
@@ -438,8 +443,12 @@ namespace Evaluation {
 			occupancy >>= 52;
 			piece_mobility -= rook_mobility[occupancy][rook_index];
 			// Semi open file bonus
-			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN)))
-				score -= rook_in_semiopen_file;
+			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN))) {
+				if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN)))
+					score -= rook_in_open_file;
+				else
+					score -= rook_in_semiopen_file;
+			}
 			black_rooks &= black_rooks - 1;
 		}
 
