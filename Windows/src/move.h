@@ -26,30 +26,6 @@
 #include <string>
 
 /*
-0000 quiet move
-0001 castling
-0010 double push
-0100 capture
-0101 enpassant
-1000 knight promoted
-1001 bishop promoted
-1010 rook promoted
-1011 queen promoted
- */
-enum Move_type {
-	QuietMove = 0,
-	Castling = 1,
-	DoublePawnPush = 2,
-	Capture = 4,
-	Enpassant = 5,
-	Promotion = 8,
-	PromotedKnight = 8,
-	PromotedBishop = 9,
-	PromotedRook = 10,
-	PromotedQueen = 11
-};
-
-/*
  * Class that represents a move.
  * This structures uses an int to store in the first half the move code
  * and the score in the second half.
@@ -61,6 +37,30 @@ enum Move_type {
 class Move {
 
 public:
+	/*
+	0000 quiet move
+	0001 castling
+	0010 double push
+	0100 capture
+	0101 enpassant
+	1000 knight promoted
+	1001 bishop promoted
+	1010 rook promoted
+	1011 queen promoted
+	 */
+	enum Move_type {
+		QuietMove = 0,
+		Castling = 1,
+		DoublePawnPush = 2,
+		Capture = 4,
+		Enpassant = 5,
+		Promotion = 8,
+		PromotedKnight = 8,
+		PromotedBishop = 9,
+		PromotedRook = 10,
+		PromotedQueen = 11
+	};
+
 	// Default = 0 (invalid move)
 	Move() {
 		move = 0;

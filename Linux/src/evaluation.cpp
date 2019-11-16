@@ -43,14 +43,31 @@ namespace Evaluation {
 	};
 
 	// Bonuses and penalties
+	// Mobility
 	constexpr int piece_mobility_factor = 8;
 	constexpr int pawn_mobility_factor = 4;
+	// Pawns
 	constexpr int isolated_pawn = -16;
 	constexpr int doubled_pawn = -16;
 	constexpr int backward_pawn = -8;
 	constexpr int passed_pawn = 32;
+	// Bonuses
 	constexpr int bishop_pair = 32;
 	constexpr int move_bonus = 25;
+	constexpr int rook_in_semiopen_file = 20;
+	constexpr int rook_in_open_file = 40;
+	// King safety
+	constexpr int king_in_the_center = 40;
+	constexpr int king_zone_attacked = 30;
+	constexpr int pawn_shelter_bonus = 20;
+	constexpr int pawn_shelter_small_bonus = 10;
+	constexpr int pawn_storm_close_range = 25;
+	constexpr int pawn_storm_medium_range = 15;
+	constexpr int pawn_storm_long_range = 5;
+	constexpr int enemy_semiopen_king_file = 50;
+	constexpr int own_semiopen_king_file = 60;
+	constexpr int enemy_semiopen_file_next_to_king = 30;
+	constexpr int own_semiopen_file_next_to_king = 20;
 
 	// Piece values in centipawns
 	constexpr int pawn_value = 100;
@@ -408,8 +425,12 @@ namespace Evaluation {
 			occupancy >>= 52;
 			piece_mobility += rook_mobility[occupancy][rook_index];
 			// Semi open file bonus
-			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN)))
-				score += 20;
+			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN))) {
+				if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN)))
+					score += rook_in_open_file;
+				else
+					score += rook_in_semiopen_file;
+			}
 			white_rooks &= white_rooks - 1;
 		}
 
@@ -422,8 +443,12 @@ namespace Evaluation {
 			occupancy >>= 52;
 			piece_mobility -= rook_mobility[occupancy][rook_index];
 			// Semi open file bonus
-			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN)))
-				score -= 20;
+			if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(BLACK, PAWN))) {
+				if (!(Bitboards::files_bb[rook_index & 7] & pos.get_piece_bitboard(WHITE, PAWN)))
+					score -= rook_in_open_file;
+				else
+					score -= rook_in_semiopen_file;
+			}
 			black_rooks &= black_rooks - 1;
 		}
 
@@ -502,7 +527,7 @@ namespace Evaluation {
 		// Bonus for having the move
 		// ***********************************************************
 		if (endgame_percentage < 80) {
-			score += (~pos.get_side_to_move() - pos.get_side_to_move()) * 25;
+			score += (~pos.get_side_to_move() - pos.get_side_to_move()) * move_bonus;
 		}
 		// ***********************************************************
 
@@ -523,20 +548,20 @@ namespace Evaluation {
 		else if ((white_king_square & 7) < FILE_D)
 			king_safety += pawns_info.queen_wing_safety[WHITE];
 		else
-			king_safety -= 40; // king in the center...
+			king_safety -= king_in_the_center;
 
 		if (FILE_E < (black_king_square & 7))
 			king_safety -= pawns_info.king_wing_safety[BLACK];
 		else if ((black_king_square & 7) < FILE_D)
 			king_safety -= pawns_info.queen_wing_safety[BLACK];
 		else
-			king_safety += 40; // king in the center...
+			king_safety += king_in_the_center;
 
 		if (king_attacks[white_king_square] & black_queens_attacks)
-			king_safety -= 30;
+			king_safety -= king_zone_attacked;
 
 		if (king_attacks[black_king_square] & white_queens_attacks)
-			king_safety += 30;
+			king_safety += king_zone_attacked;
 
 		score += ((king_middlegame_score + king_safety) * middlegame_percentage + king_endgame_score * endgame_percentage) / 100;
 		// ***********************************************************
@@ -583,12 +608,12 @@ namespace Evaluation {
 		while(white_king_wing_shelter) {
 			int pawn_index = Bitboards::bit_scan_forward(white_king_wing_shelter);
 			switch(pawn_index) {
-			case(F2): white_king_wing_safety += 20; break;
-			case(G2): white_king_wing_safety += 20; break;
-			case(H2): white_king_wing_safety += 20; break;
-			case(F3): white_king_wing_safety += 10; break;
-			case(G3): white_king_wing_safety += 10; break;
-			case(H3): white_king_wing_safety += 10; break;
+			case(F2): white_king_wing_safety += pawn_shelter_bonus; break;
+			case(G2): white_king_wing_safety += pawn_shelter_bonus; break;
+			case(H2): white_king_wing_safety += pawn_shelter_bonus; break;
+			case(F3): white_king_wing_safety += pawn_shelter_small_bonus; break;
+			case(G3): white_king_wing_safety += pawn_shelter_small_bonus; break;
+			case(H3): white_king_wing_safety += pawn_shelter_small_bonus; break;
 			}
 			white_king_wing_shelter &= white_king_wing_shelter - 1;
 		}
@@ -596,12 +621,12 @@ namespace Evaluation {
 		while(white_queen_wing_shelter) {
 			int pawn_index = Bitboards::bit_scan_forward(white_queen_wing_shelter);
 			switch(pawn_index) {
-			case(A2): white_queen_wing_safety += 20; break;
-			case(B2): white_queen_wing_safety += 20; break;
-			case(C2): white_queen_wing_safety += 20; break;
-			case(A3): white_queen_wing_safety += 10; break;
-			case(B3): white_queen_wing_safety += 10; break;
-			case(C3): white_queen_wing_safety += 10; break;
+			case(A2): white_queen_wing_safety += pawn_shelter_bonus; break;
+			case(B2): white_queen_wing_safety += pawn_shelter_bonus; break;
+			case(C2): white_queen_wing_safety += pawn_shelter_bonus; break;
+			case(A3): white_queen_wing_safety += pawn_shelter_small_bonus; break;
+			case(B3): white_queen_wing_safety += pawn_shelter_small_bonus; break;
+			case(C3): white_queen_wing_safety += pawn_shelter_small_bonus; break;
 			}
 			white_queen_wing_shelter &= white_queen_wing_shelter - 1;
 		}
@@ -609,12 +634,12 @@ namespace Evaluation {
 		while(black_king_wing_shelter) {
 			int pawn_index = Bitboards::bit_scan_forward(black_king_wing_shelter);
 			switch(pawn_index) {
-			case(F7): black_king_wing_safety += 20; break;
-			case(G7): black_king_wing_safety += 20; break;
-			case(H7): black_king_wing_safety += 20; break;
-			case(F6): black_king_wing_safety += 10; break;
-			case(G6): black_king_wing_safety += 10; break;
-			case(H6): black_king_wing_safety += 10; break;
+			case(F7): black_king_wing_safety += pawn_shelter_bonus; break;
+			case(G7): black_king_wing_safety += pawn_shelter_bonus; break;
+			case(H7): black_king_wing_safety += pawn_shelter_bonus; break;
+			case(F6): black_king_wing_safety += pawn_shelter_small_bonus; break;
+			case(G6): black_king_wing_safety += pawn_shelter_small_bonus; break;
+			case(H6): black_king_wing_safety += pawn_shelter_small_bonus; break;
 			}
 			black_king_wing_shelter &= black_king_wing_shelter - 1;
 		}
@@ -622,12 +647,12 @@ namespace Evaluation {
 		while(black_queen_wing_shelter) {
 			int pawn_index = Bitboards::bit_scan_forward(black_queen_wing_shelter);
 			switch(pawn_index) {
-			case(A7): black_queen_wing_safety += 20; break;
-			case(B7): black_queen_wing_safety += 20; break;
-			case(C7): black_queen_wing_safety += 20; break;
-			case(A6): black_queen_wing_safety += 10; break;
-			case(B6): black_queen_wing_safety += 10; break;
-			case(C6): black_queen_wing_safety += 10; break;
+			case(A7): black_queen_wing_safety += pawn_shelter_bonus; break;
+			case(B7): black_queen_wing_safety += pawn_shelter_bonus; break;
+			case(C7): black_queen_wing_safety += pawn_shelter_bonus; break;
+			case(A6): black_queen_wing_safety += pawn_shelter_small_bonus; break;
+			case(B6): black_queen_wing_safety += pawn_shelter_small_bonus; break;
+			case(C6): black_queen_wing_safety += pawn_shelter_small_bonus; break;
 			}
 			black_queen_wing_shelter &= black_queen_wing_shelter - 1;
 		}
@@ -643,9 +668,9 @@ namespace Evaluation {
 		while(white_king_wing_pawn_storm) {
 			int pawn_index = Bitboards::bit_scan_forward(white_king_wing_pawn_storm);
 			switch(pawn_index >> 3) {
-			case(RANK_6): black_king_wing_safety -= 25; break;
-			case(RANK_5): black_king_wing_safety -= 15; break;
-			case(RANK_4): black_king_wing_safety -= 5; break;
+			case(RANK_6): black_king_wing_safety -= pawn_storm_close_range; break;
+			case(RANK_5): black_king_wing_safety -= pawn_storm_medium_range; break;
+			case(RANK_4): black_king_wing_safety -= pawn_storm_long_range; break;
 			}
 			white_king_wing_pawn_storm &= white_king_wing_pawn_storm - 1;
 		}
@@ -653,9 +678,9 @@ namespace Evaluation {
 		while(white_queen_wing_pawn_storm) {
 			int pawn_index = Bitboards::bit_scan_forward(white_queen_wing_pawn_storm);
 			switch(pawn_index >> 3) {
-			case(RANK_6): black_queen_wing_safety -= 25; break;
-			case(RANK_5): black_queen_wing_safety -= 15; break;
-			case(RANK_4): black_queen_wing_safety -= 5; break;
+			case(RANK_6): black_queen_wing_safety -= pawn_storm_close_range; break;
+			case(RANK_5): black_queen_wing_safety -= pawn_storm_medium_range; break;
+			case(RANK_4): black_queen_wing_safety -= pawn_storm_long_range; break;
 			}
 			white_queen_wing_pawn_storm &= white_queen_wing_pawn_storm - 1;
 		}
@@ -663,9 +688,9 @@ namespace Evaluation {
 		while(black_king_wing_pawn_storm) {
 			int pawn_index = Bitboards::bit_scan_forward(black_king_wing_pawn_storm);
 			switch(pawn_index >> 3) {
-			case(RANK_3): white_king_wing_safety -= 25; break;
-			case(RANK_4): white_king_wing_safety -= 15; break;
-			case(RANK_5): white_king_wing_safety -= 5; break;
+			case(RANK_3): white_king_wing_safety -= pawn_storm_close_range; break;
+			case(RANK_4): white_king_wing_safety -= pawn_storm_medium_range; break;
+			case(RANK_5): white_king_wing_safety -= pawn_storm_long_range; break;
 			}
 			black_king_wing_pawn_storm &= black_king_wing_pawn_storm - 1;
 		}
@@ -673,9 +698,9 @@ namespace Evaluation {
 		while(black_queen_wing_pawn_storm) {
 			int pawn_index = Bitboards::bit_scan_forward(black_queen_wing_pawn_storm);
 			switch(pawn_index >> 3) {
-			case(RANK_3): white_queen_wing_safety -= 25; break;
-			case(RANK_4): white_queen_wing_safety -= 15; break;
-			case(RANK_5): white_queen_wing_safety -= 5; break;
+			case(RANK_3): white_queen_wing_safety -= pawn_storm_close_range; break;
+			case(RANK_4): white_queen_wing_safety -= pawn_storm_medium_range; break;
+			case(RANK_5): white_queen_wing_safety -= pawn_storm_long_range; break;
 			}
 			black_queen_wing_pawn_storm &= black_queen_wing_pawn_storm - 1;
 		}
@@ -684,53 +709,53 @@ namespace Evaluation {
 		// Open files next to the king
 		// ***********************************************************
 		if (!(Bitboards::files_bb[FILE_F] & black_pawns)) {
-			white_king_wing_safety -= 30;
-			black_king_wing_safety -= 20;
+			white_king_wing_safety -= enemy_semiopen_file_next_to_king;
+			black_king_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_G] & black_pawns)) {
-			white_king_wing_safety -= 50;
-			black_king_wing_safety -= 60;
+			white_king_wing_safety -= enemy_semiopen_king_file;
+			black_king_wing_safety -= own_semiopen_king_file;
 		}
 		if (!(Bitboards::files_bb[FILE_H] & black_pawns)) {
-			white_king_wing_safety -= 30;
-			black_king_wing_safety -= 20;
+			white_king_wing_safety -= enemy_semiopen_file_next_to_king;
+			black_king_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_A] & black_pawns)) {
-			white_queen_wing_safety -= 30;
-			black_queen_wing_safety -= 20;
+			white_queen_wing_safety -= enemy_semiopen_file_next_to_king;
+			black_queen_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_B] & black_pawns)) {
-			white_queen_wing_safety -= 50;
-			black_queen_wing_safety -= 60;
+			white_queen_wing_safety -= enemy_semiopen_king_file;
+			black_queen_wing_safety -= own_semiopen_king_file;
 		}
 		if (!(Bitboards::files_bb[FILE_C] & black_pawns)) {
-			white_queen_wing_safety -= 30;
-			black_queen_wing_safety -= 20;
+			white_queen_wing_safety -= enemy_semiopen_file_next_to_king;
+			black_queen_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_F] & white_pawns)) {
-			black_king_wing_safety -= 30;
-			white_king_wing_safety -= 20;
+			black_king_wing_safety -= enemy_semiopen_file_next_to_king;
+			white_king_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_G] & white_pawns)) {
-			black_king_wing_safety -= 50;
-			white_king_wing_safety -= 60;
+			black_king_wing_safety -= enemy_semiopen_king_file;
+			white_king_wing_safety -= own_semiopen_king_file;
 		}
 		if (!(Bitboards::files_bb[FILE_H] & white_pawns)) {
-			black_king_wing_safety -= 30;
-			white_king_wing_safety -= 20;
+			black_king_wing_safety -= enemy_semiopen_file_next_to_king;
+			white_king_wing_safety -= own_semiopen_file_next_to_king;
 		}
 
 		if (!(Bitboards::files_bb[FILE_A] & white_pawns)) {
-			black_queen_wing_safety -= 30;
-			white_queen_wing_safety -= 20;
+			black_queen_wing_safety -= enemy_semiopen_file_next_to_king;
+			white_queen_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		if (!(Bitboards::files_bb[FILE_B] & white_pawns)) {
-			black_queen_wing_safety -= 50;
-			white_queen_wing_safety -= 60;
+			black_queen_wing_safety -= enemy_semiopen_king_file;
+			white_queen_wing_safety -= own_semiopen_king_file;
 		}
 		if (!(Bitboards::files_bb[FILE_C] & white_pawns)) {
-			black_queen_wing_safety -= 30;
-			white_queen_wing_safety -= 20;
+			black_queen_wing_safety -= enemy_semiopen_file_next_to_king;
+			white_queen_wing_safety -= own_semiopen_file_next_to_king;
 		}
 		// ***********************************************************
 

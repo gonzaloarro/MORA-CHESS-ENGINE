@@ -102,9 +102,9 @@ namespace MoveGen {
 		while(knights) {
 			int knight_index = Bitboards::bit_scan_forward(knights);
 			Bitboard empty_targets = knight_attacks[knight_index] & pos.get_empty_squares();
-			extract_moves(pos, empty_targets, knight_index, QuietMove, move_list, KNIGHT);
+			extract_moves(pos, empty_targets, knight_index, Move::QuietMove, move_list, KNIGHT);
 			Bitboard capture_targets = knight_attacks[knight_index] & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, knight_index, Capture, move_list, KNIGHT);
+			extract_moves(pos, capture_targets, knight_index, Move::Capture, move_list, KNIGHT);
 			knights &= knights - 1;
 		}
 	}
@@ -117,17 +117,18 @@ namespace MoveGen {
 		Bitboard king_bb = pos.get_piece_bitboard(pos.get_side_to_move(), KING);
 		int king_index = Bitboards::bit_scan_forward(king_bb);
 		Bitboard empty_targets = king_attacks[king_index] & empty_squares;
-		extract_moves(pos, empty_targets, king_index, QuietMove, move_list, KING);
+		extract_moves(pos, empty_targets, king_index, Move::QuietMove, move_list, KING);
 		Bitboard capture_targets = king_attacks[king_index] & pos.get_occupied_squares(~pos.get_side_to_move());
-		extract_moves(pos, capture_targets, king_index, Capture, move_list, KING);
+		extract_moves(pos, capture_targets, king_index, Move::Capture, move_list, KING);
 		// Castling
+		// todo: improve castling moves generation
 		if (pos.get_side_to_move() == WHITE) {
 			if (king_index == E1) {
 				Bitboard castling_moves = 0x0000000000000044 & empty_squares;
 				Bitboard rook_castling = 0x0000000000000028 & empty_squares;
 				castling_moves &= ((rook_castling << 1) ^ (rook_castling >> 1));
 				castling_moves &= ((pos.get_piece_bitboard(pos.get_side_to_move(), ROOK) << 2) | (pos.get_piece_bitboard(pos.get_side_to_move(), ROOK) >> 1));
-				extract_moves(pos, castling_moves, king_index, Castling, move_list, KING);
+				extract_moves(pos, castling_moves, king_index, Move::Castling, move_list, KING);
 			}
 		}
 		else {
@@ -136,7 +137,7 @@ namespace MoveGen {
 				Bitboard rook_castling = 0x2800000000000000 & empty_squares;
 				castling_moves &= ((rook_castling << 1) ^ (rook_castling >> 1));
 				castling_moves &= ((pos.get_piece_bitboard(pos.get_side_to_move(), ROOK) << 2) | (pos.get_piece_bitboard(pos.get_side_to_move(), ROOK) >> 1));
-				extract_moves(pos, castling_moves, king_index, Castling, move_list, KING);
+				extract_moves(pos, castling_moves, king_index, Move::Castling, move_list, KING);
 			}
 		}
 	}
@@ -150,9 +151,9 @@ namespace MoveGen {
 			int bishop_index = Bitboards::bit_scan_forward(bishops);
 			Bitboard bishop_attacks = get_bishop_attacks(pos.get_occupancy(), bishop_index);
 			Bitboard empty_targets = bishop_attacks & pos.get_empty_squares();
-			extract_moves(pos, empty_targets, bishop_index, QuietMove, move_list, BISHOP);
+			extract_moves(pos, empty_targets, bishop_index, Move::QuietMove, move_list, BISHOP);
 			Bitboard capture_targets = bishop_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, bishop_index, Capture, move_list, BISHOP);
+			extract_moves(pos, capture_targets, bishop_index, Move::Capture, move_list, BISHOP);
 			bishops &= bishops - 1;
 		}
 	}
@@ -166,9 +167,9 @@ namespace MoveGen {
 			int rook_index = Bitboards::bit_scan_forward(rooks);
 			Bitboard rook_attacks = get_rook_attacks(pos.get_occupancy(), rook_index);
 			Bitboard empty_targets = rook_attacks & pos.get_empty_squares();
-			extract_moves(pos, empty_targets, rook_index, QuietMove, move_list, ROOK);
+			extract_moves(pos, empty_targets, rook_index, Move::QuietMove, move_list, ROOK);
 			Bitboard capture_targets = rook_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, rook_index, Capture, move_list, ROOK);
+			extract_moves(pos, capture_targets, rook_index, Move::Capture, move_list, ROOK);
 			rooks &= rooks - 1;
 		}
 	}
@@ -182,9 +183,9 @@ namespace MoveGen {
 			int queen_index = Bitboards::bit_scan_forward(queens);
 			Bitboard queen_attacks = get_queen_attacks(pos.get_occupancy(), queen_index);
 			Bitboard empty_targets = queen_attacks & pos.get_empty_squares();
-			extract_moves(pos, empty_targets, queen_index, QuietMove, move_list, QUEEN);
+			extract_moves(pos, empty_targets, queen_index, Move::QuietMove, move_list, QUEEN);
 			Bitboard capture_targets = queen_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, queen_index, Capture, move_list, QUEEN);
+			extract_moves(pos, capture_targets, queen_index, Move::Capture, move_list, QUEEN);
 			queens &= queens - 1;
 		}
 	}
@@ -208,8 +209,8 @@ namespace MoveGen {
 		Bitboard double_push_targets = (single_push_targets << 8) & Bitboards::ranks_bb[RANK_4] & empty_squares;
 		Bitboard promotions = single_push_targets & Bitboards::ranks_bb[RANK_8];
 		single_push_targets &= not_8_rank;
-		extract_pawn_moves(pos, single_push_targets, QuietMove, move_list, NORTH);
-		extract_pawn_moves(pos, double_push_targets, DoublePawnPush, move_list, NORTH+NORTH);
+		extract_pawn_moves(pos, single_push_targets, Move::QuietMove, move_list, NORTH);
+		extract_pawn_moves(pos, double_push_targets, Move::DoublePawnPush, move_list, NORTH+NORTH);
 		extract_pawn_push_promotions(pos, promotions, move_list, NORTH);
 	}
 
@@ -222,8 +223,8 @@ namespace MoveGen {
 		Bitboard double_push_targets = (single_push_targets >> 8) & Bitboards::ranks_bb[RANK_5] & empty_squares;
 		Bitboard promotions = single_push_targets & Bitboards::ranks_bb[RANK_1];
 		single_push_targets &= not_1_rank;
-		extract_pawn_moves(pos, single_push_targets, QuietMove, move_list, SOUTH);
-		extract_pawn_moves(pos, double_push_targets, DoublePawnPush, move_list, SOUTH+SOUTH);
+		extract_pawn_moves(pos, single_push_targets, Move::QuietMove, move_list, SOUTH);
+		extract_pawn_moves(pos, double_push_targets, Move::DoublePawnPush, move_list, SOUTH+SOUTH);
 		extract_pawn_push_promotions(pos, promotions, move_list, SOUTH);
 	}
 
@@ -263,7 +264,7 @@ namespace MoveGen {
 		while(knights) {
 			int knight_index = Bitboards::bit_scan_forward(knights);
 			Bitboard capture_targets = knight_attacks[knight_index] & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, knight_index, Capture, move_list, KNIGHT);
+			extract_moves(pos, capture_targets, knight_index, Move::Capture, move_list, KNIGHT);
 			knights &= knights - 1;
 		}
 	}
@@ -277,7 +278,7 @@ namespace MoveGen {
 			int bishop_index = Bitboards::bit_scan_forward(bishops);
 			Bitboard bishop_attacks = get_bishop_attacks(~pos.get_empty_squares(), bishop_index);
 			Bitboard capture_targets = bishop_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, bishop_index, Capture, move_list, BISHOP);
+			extract_moves(pos, capture_targets, bishop_index, Move::Capture, move_list, BISHOP);
 			bishops &= bishops - 1;
 		}
 	}
@@ -291,7 +292,7 @@ namespace MoveGen {
 			int rook_index = Bitboards::bit_scan_forward(rooks);
 			Bitboard rook_attacks = get_rook_attacks(~pos.get_empty_squares(), rook_index);
 			Bitboard capture_targets = rook_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, rook_index, Capture, move_list, ROOK);
+			extract_moves(pos, capture_targets, rook_index, Move::Capture, move_list, ROOK);
 			rooks &= rooks - 1;
 		}
 	}
@@ -305,7 +306,7 @@ namespace MoveGen {
 			int queen_index = Bitboards::bit_scan_forward(queens);
 			Bitboard queen_attacks = get_queen_attacks(~pos.get_empty_squares(), queen_index);
 			Bitboard capture_targets = queen_attacks & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, queen_index, Capture, move_list, QUEEN);
+			extract_moves(pos, capture_targets, queen_index, Move::Capture, move_list, QUEEN);
 			queens &= queens - 1;
 		}
 	}
@@ -318,7 +319,7 @@ namespace MoveGen {
 		while(king_bitboard) {
 			int king_index = Bitboards::bit_scan_forward(king_bitboard);
 			Bitboard capture_targets = king_attacks[king_index] & pos.get_occupied_squares(~pos.get_side_to_move());
-			extract_moves(pos, capture_targets, king_index, Capture, move_list, KING);
+			extract_moves(pos, capture_targets, king_index, Move::Capture, move_list, KING);
 			king_bitboard &= king_bitboard - 1;
 		}
 	}
@@ -343,8 +344,8 @@ namespace MoveGen {
 		Bitboard right_captures = right_targets & not_8_rank & pos.get_occupied_squares(BLACK);
 		Bitboard left_promotions = left_targets & ranks_bb[RANK_8] & pos.get_occupied_squares(BLACK);
 		Bitboard right_promotions = right_targets & ranks_bb[RANK_8] & pos.get_occupied_squares(BLACK);
-		extract_pawn_captures(pos, left_captures, Capture, move_list, NORTH_WEST);
-		extract_pawn_captures(pos, right_captures, Capture, move_list, NORTH_EAST);
+		extract_pawn_captures(pos, left_captures, Move::Capture, move_list, NORTH_WEST);
+		extract_pawn_captures(pos, right_captures, Move::Capture, move_list, NORTH_EAST);
 		extract_pawn_capture_promotions(pos, left_promotions, move_list, NORTH_WEST);
 		extract_pawn_capture_promotions(pos, right_promotions, move_list, NORTH_EAST);
 		// Enpassant
@@ -352,11 +353,11 @@ namespace MoveGen {
 			Bitboard enpassant_target = 1;
 			enpassant_target <<= pos.get_enpassant_square();
 			if (enpassant_target & left_targets) {
-				Move move(Enpassant, pos.get_enpassant_square() - 7, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
+				Move move(Move::Enpassant, pos.get_enpassant_square() - 7, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
 				add_move(move_list, move);
 			}
 			if (enpassant_target & right_targets) {
-				Move move(Enpassant, pos.get_enpassant_square() - 9, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
+				Move move(Move::Enpassant, pos.get_enpassant_square() - 9, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
 				add_move(move_list, move);
 			}
 		}
@@ -372,8 +373,8 @@ namespace MoveGen {
 		Bitboard right_captures = right_targets & not_1_rank & pos.get_occupied_squares(WHITE);
 		Bitboard left_promotions = left_targets & ranks_bb[RANK_1] & pos.get_occupied_squares(WHITE);
 		Bitboard right_promotions = right_targets & ranks_bb[RANK_1] & pos.get_occupied_squares(WHITE);
-		extract_pawn_captures(pos, left_captures, Capture, move_list, SOUTH_EAST);
-		extract_pawn_captures(pos, right_captures, Capture, move_list, SOUTH_WEST);
+		extract_pawn_captures(pos, left_captures, Move::Capture, move_list, SOUTH_EAST);
+		extract_pawn_captures(pos, right_captures, Move::Capture, move_list, SOUTH_WEST);
 		extract_pawn_capture_promotions(pos, left_promotions, move_list, SOUTH_EAST);
 		extract_pawn_capture_promotions(pos, right_promotions, move_list, SOUTH_WEST);
 		// Enpassant
@@ -381,11 +382,11 @@ namespace MoveGen {
 			Bitboard enpassant_target = 1;
 			enpassant_target <<= pos.get_enpassant_square();
 			if (enpassant_target & left_targets) {
-				Move move(Enpassant, pos.get_enpassant_square() + 7, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
+				Move move(Move::Enpassant, pos.get_enpassant_square() + 7, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
 				add_move(move_list, move);
 			}
 			if (enpassant_target & right_targets) {
-				Move move(Enpassant, pos.get_enpassant_square() + 9, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
+				Move move(Move::Enpassant, pos.get_enpassant_square() + 9, pos.get_enpassant_square(), MVVLVA[PAWN][PAWN] + capture_score);
 				add_move(move_list, move);
 			}
 		}
@@ -442,10 +443,10 @@ namespace MoveGen {
 	void extract_pawn_push_promotions(Position &pos, Bitboard targets, Move_list &move_list, Direction direction) {
 		while (targets) {
 			int to = Bitboards::bit_scan_forward(targets);
-			Move move1(PromotedKnight, to - direction, to, promotion_score);
-			Move move2(PromotedQueen, to - direction, to, promotion_score + 1);
-			Move move3(PromotedRook, to - direction, to, promotion_score);
-			Move move4(PromotedBishop, to - direction, to, promotion_score);
+			Move move1(Move::PromotedKnight, to - direction, to, promotion_score);
+			Move move2(Move::PromotedQueen, to - direction, to, promotion_score + 1);
+			Move move3(Move::PromotedRook, to - direction, to, promotion_score);
+			Move move4(Move::PromotedBishop, to - direction, to, promotion_score);
 			add_move(move_list, move1);
 			add_move(move_list, move2);
 			add_move(move_list, move3);
@@ -460,10 +461,10 @@ namespace MoveGen {
 	void extract_pawn_capture_promotions(Position &pos, Bitboard targets, Move_list &move_list, Direction direction) {
 		while (targets) {
 			int to = Bitboards::bit_scan_forward(targets);
-			Move move1(Capture | PromotedKnight, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
-			Move move2(Capture | PromotedQueen, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score + 1);
-			Move move3(Capture | PromotedRook, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
-			Move move4(Capture | PromotedBishop, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
+			Move move1(Move::Capture | Move::PromotedKnight, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
+			Move move2(Move::Capture | Move::PromotedQueen, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score + 1);
+			Move move3(Move::Capture | Move::PromotedRook, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
+			Move move4(Move::Capture | Move::PromotedBishop, to - direction, to, MVVLVA[pos.get_piece(to)][PAWN] + promotion_score + capture_score);
 			add_move(move_list, move1);
 			add_move(move_list, move2);
 			add_move(move_list, move3);
@@ -480,7 +481,7 @@ namespace MoveGen {
 		while(targets) {
 			int to = Bitboards::bit_scan_forward(targets);
 			Move move(move_flags, from, to);
-			if (move_flags & Capture) {
+			if (move_flags & Move::Capture) {
 				move.set_score(MVVLVA[pos.get_piece(to)][piece] + capture_score);
 			}
 			add_move(move_list, move);

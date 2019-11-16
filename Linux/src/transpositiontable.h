@@ -39,6 +39,12 @@ namespace Search {
 	int constexpr HASH_ALPHA = 2;
 
 	/*
+	 * Hash size limits.
+	 */
+	constexpr int MIN_HASH_SIZE = 1;
+	constexpr int MAX_HASH_SIZE = 1024;
+
+	/*
 	 * Hash entry struct.
 	 */
 	struct Hash_entry {
@@ -49,13 +55,10 @@ namespace Search {
 		int node_type;
 	};
 
-	// Hash table size
-	int constexpr hash_table_size = 0x100000 * 128; // 128 MB
-	int constexpr hash_table_entries = hash_table_size / sizeof(Hash_entry);
+	// Default Hash table size
+	int constexpr default_hash_table_size = 0x100000 * 128; // 128 MB
+	int constexpr default_hash_table_entries = default_hash_table_size / sizeof(Hash_entry);
 
-	struct Hash_table {
-		Hash_entry hash_entries[hash_table_entries];
-	};
 
 	// Principal variation struct
 	struct PV {
@@ -67,6 +70,16 @@ namespace Search {
 	 * Principal variation to be displayed in the search.
 	 */
 	extern PV principal_variation;
+
+	/*
+	 * Initializes the transposition table.
+	 */
+	void init();
+
+	/*
+	 * Sets the transposition table size in megabytes.
+	 */
+	void set_transposition_table_size(int mb);
 
 	/*
 	 * Stores a hash entry into the hash table.
