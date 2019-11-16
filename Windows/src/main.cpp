@@ -26,6 +26,8 @@
 #include "bitboards.h"
 #include "attacks.h"
 #include "uci.h"
+#include "transpositiontable.h"
+#include "pawnhashtable.h"
 
 using namespace std;
 
@@ -35,6 +37,8 @@ int main() {
 	Position::init();
 	Bitboards::init();
 	Attacks::init();
+	Search::init();
+	Evaluation::init();
 
 	// LICENSE
 	cout << "**************************************************************" << endl;

@@ -20,21 +20,30 @@
  * Author: gonzalo.arro@gmail.com
  */
 
+#include <vector>
+
 #include "pawnhashtable.h"
 
 namespace Evaluation {
 
+	// Hash table size
+	constexpr int pawn_hash_table_entries = 65536;
+
 	/*
 	 * Pawn hash table.
 	 */
-	Pawns_hash_table pawns_hash_table;
+	std::vector<Pawn_hash_entry> pawns_hash_table;
+
+	void init() {
+		pawns_hash_table.reserve(pawn_hash_table_entries);
+	}
 
 	/*
 	 * Stores a hash entry.
 	 */
 	void store_hash_pawns(Key key, Pawns_info pawns_info) {
 		// Get the corresponding entry
-		Pawn_hash_entry &hash_entry = pawns_hash_table.pawns_hash_entries[key % entries];
+		Pawn_hash_entry &hash_entry = pawns_hash_table[key % pawns_hash_table.capacity()];
 		// Set the info
 		hash_entry.zobrist_key = key;
 		hash_entry.pawns_info.passed_pawns[WHITE] = pawns_info.passed_pawns[WHITE];
@@ -55,7 +64,7 @@ namespace Evaluation {
 	 * and load the pawn structure info.
 	 */
 	bool probe_hash_pawns(Key key, Pawns_info &pawns_info) {
-		Pawn_hash_entry hash_entry = pawns_hash_table.pawns_hash_entries[key % entries];
+		Pawn_hash_entry hash_entry = pawns_hash_table[key % pawns_hash_table.capacity()];
 		if (hash_entry.zobrist_key == key) {
 			pawns_info = hash_entry.pawns_info;
 			return true;

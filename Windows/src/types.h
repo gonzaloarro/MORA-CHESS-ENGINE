@@ -29,6 +29,8 @@ constexpr int SQUARES = 64; // number of squares
 constexpr int FILES = 8; // number of files
 constexpr int RANKS = 8; // number of ranks
 constexpr int PLAYERS = 2; // number of players (white and black)
+constexpr int PIECE_TYPES = 12; // Six different types and two colors
+
 
 /*
  * Files.
