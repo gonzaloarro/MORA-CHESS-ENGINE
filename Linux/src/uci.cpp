@@ -79,12 +79,20 @@ namespace UCI {
 				cout << "uciok" << endl;
 			}
 			else if (command == "isready") {
+				if (searching) {
+					search_th.join();
+					searching = false;
+				}
 				cout << "readyok" << endl;
 			}
 			else if (command == "ucinewgame") {
 				// not neccesary right now...
 			}
 			else if (command == "position") {
+				if (searching) {
+					search_th.join();
+					searching = false;
+				}
 				position(tokens, pos);
 			}
 			else if (command == "go") {
