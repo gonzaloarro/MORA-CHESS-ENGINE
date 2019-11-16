@@ -33,7 +33,19 @@ namespace Search {
 	Move probe_pv_move(Position &pos);
 
 	void init() {
-		hash_table.reserve(hash_table_entries);
+		hash_table.reserve(default_hash_table_entries);
+	}
+
+	void set_transposition_table_size(int mb) {
+		if (mb < MIN_HASH_SIZE)
+			mb = MIN_HASH_SIZE;
+		if (mb > MAX_HASH_SIZE)
+			mb = MAX_HASH_SIZE;
+		int entries = (0x100000 * mb) / sizeof(Hash_entry);
+		std::vector<Hash_entry> temp;
+		temp.reserve(entries);
+		hash_table.clear();
+		hash_table.swap(temp);
 	}
 
 	/*

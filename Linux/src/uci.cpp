@@ -30,6 +30,7 @@
 #include "position.h"
 #include "search.h"
 #include "timemanagement.h"
+#include "transpositiontable.h"
 
 using namespace std;
 
@@ -41,11 +42,13 @@ namespace UCI {
 	const struct {
 		string name;
 		string author;
-	} engine_info = {"MORA", "Gonzalo Arro" }; // Gonzalo Arró
+		string options;
+	} engine_info = {"MORA", "Gonzalo Arro", string("option name Hash type spin default 128 min ")+to_string(Search::MIN_HASH_SIZE)+" max "+to_string(Search::MAX_HASH_SIZE) };
 
 	// UCI Commands
 	void position(vector<string> tokens, Position &pos);
 	Search::Search_info go(vector<string> tokens, Position &pos);
+	void setoption(vector<string> tokens);
 
 	// Helpers
 	Move parse_move(string s, Position &pos);
@@ -76,6 +79,7 @@ namespace UCI {
 			if (command == "uci") {
 				cout << "id name " << engine_info.name << endl;
 				cout << "id author " << engine_info.author << endl;
+				cout << engine_info.options << endl;
 				cout << "uciok" << endl;
 			}
 			else if (command == "isready") {
@@ -87,6 +91,9 @@ namespace UCI {
 			}
 			else if (command == "ucinewgame") {
 				// not neccesary right now...
+			}
+			else if (command == "setoption") {
+				setoption(tokens);
 			}
 			else if (command == "position") {
 				if (searching) {
@@ -115,6 +122,35 @@ namespace UCI {
 					search_th.join();
 				}
 				break;
+			}
+		}
+	}
+
+	/*
+	 * Implements the UCI setoption command.
+	 * For the moment Hash is the only option available.
+	 */
+	void setoption(vector<string> tokens) {
+		vector<string>::iterator it = tokens.begin();
+		vector<string>::iterator end = tokens.end();
+		it++;
+		if (it != end) {
+			if (*it != "name") {
+				return;
+			}
+			it++;
+		}
+		if (it !=end && *it == "Hash") {
+			it++;
+			if (it != end) {
+				if (*it != "value") {
+					return;
+				}
+				it++;
+			}
+			if (it != end) {
+				int hash_size_mb = std::stoi(*it);
+				Search::set_transposition_table_size(hash_size_mb);
 			}
 		}
 	}
