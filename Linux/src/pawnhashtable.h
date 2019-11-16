@@ -42,12 +42,10 @@ struct Pawns_info {
 		Pawns_info pawns_info;
   };
 
-  constexpr int entries = 32768;
-
-  struct Pawns_hash_table {
-    Pawn_hash_entry pawns_hash_entries[entries];
-  };
-
+  /*
+   * Initializes the pawns hash table.
+   */
+  void init();
 
   /*
    * Stores a hash entry into the pawns hash table.

@@ -20,22 +20,28 @@
  * Author: gonzalo.arro@gmail.com
  */
 
+#include <vector>
+
 #include "transpositiontable.h"
 
 namespace Search {
 
-	Hash_table hash_table;
+	std::vector<Hash_entry> hash_table;
 	PV principal_variation;
 
 	// Helpers
 	Move probe_pv_move(Position &pos);
+
+	void init() {
+		hash_table.reserve(hash_table_entries);
+	}
 
 	/*
 	 * Stores a hash entry using "always replace" as the replacement strategy.
 	 */
 	void store_hash(Key key, Move best_move, int score, int depth, int node_type) {
 		// Get the corresponding entry
-		Hash_entry &hash_entry = hash_table.hash_entries[key % hash_table_entries];
+		Hash_entry &hash_entry = hash_table[key % hash_table.capacity()];
 		// Set the info
 		hash_entry.zobrist_key = key;
 		hash_entry.best_move = best_move;
@@ -50,7 +56,7 @@ namespace Search {
 	 * and load the best move.
 	 */
 	int probe_hash(Key key, int depth, int alpha, int beta, Move &pv_move) {
-		Hash_entry hash_entry = hash_table.hash_entries[key % hash_table_entries];
+		Hash_entry hash_entry = hash_table[key % hash_table.capacity()];
 		if (hash_entry.zobrist_key == key) {
 			pv_move = hash_entry.best_move;
 			if (hash_entry.depth >= depth) { // Only use a value obtained with a deeper or equal search
@@ -93,7 +99,7 @@ namespace Search {
 	const Move null_move;
 
 	Move probe_pv_move(Position &pos) {
-		Hash_entry hash_entry = hash_table.hash_entries[pos.get_position_key() % hash_table_entries];
+		Hash_entry hash_entry = hash_table[pos.get_position_key() % hash_table.capacity()];
 		if (hash_entry.zobrist_key == pos.get_position_key()) {
 			return hash_entry.best_move;
 		}

@@ -53,9 +53,6 @@ namespace Search {
 	int constexpr hash_table_size = 0x100000 * 128; // 128 MB
 	int constexpr hash_table_entries = hash_table_size / sizeof(Hash_entry);
 
-	struct Hash_table {
-		Hash_entry hash_entries[hash_table_entries];
-	};
 
 	// Principal variation struct
 	struct PV {
@@ -67,6 +64,11 @@ namespace Search {
 	 * Principal variation to be displayed in the search.
 	 */
 	extern PV principal_variation;
+
+	/*
+	 * Initializes the transposition table.
+	 */
+	void init();
 
 	/*
 	 * Stores a hash entry into the hash table.
