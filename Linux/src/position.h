@@ -125,7 +125,7 @@ private:
 
 	// Initialization helpers
 	void set_position_key(int * color);
-	void set_pawns_key();
+	void set_pawns_key(int * color);
 	void init_material(int * color);
 
 	// load_FEN helpers

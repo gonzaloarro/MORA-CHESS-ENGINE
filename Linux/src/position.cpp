@@ -189,7 +189,7 @@ void Position::load_FEN(std::string s) {
 	}
 	// Hash keys
 	set_position_key(color);
-	set_pawns_key();
+	set_pawns_key(color);
 	// Aditional bitboards
 	for (int piece_type = KNIGHT; piece_type <= KING; piece_type++) { // TODO: loop depends on piece order definition
 		occupied_squares[WHITE] |= piece_bitboards[WHITE][piece_type];
@@ -262,12 +262,12 @@ void Position::set_position_key(int * color) {
 /*
  * Sets the pawns key for zobrist hashing.
  */
-void Position::set_pawns_key() {
+void Position::set_pawns_key(int * color) {
 	pawns_key = 0;
 	for (int square = A1; square <= H8; square++) {
 		int piece = board_mailbox[square];
 		if (piece == PAWN)
-			pawns_key ^= Zobrist::pieces[PAWN][square];
+			pawns_key ^= Zobrist::pieces[PAWN + color[square] * 6][square];
 	}
 }
 
@@ -393,8 +393,8 @@ bool Position::make_move(Move &move) {
 
 	if (moved_piece == PAWN) {
 		fifty_count = -1;
-		pawns_key ^= Zobrist::pieces[PAWN][from];
-		pawns_key ^= Zobrist::pieces[PAWN][to];
+		pawns_key ^= Zobrist::pieces[PAWN + side_to_move * 6][from];
+		pawns_key ^= Zobrist::pieces[PAWN + side_to_move * 6][to];
 
 		// Promotion
 		if (move.is_promotion()) {
@@ -404,7 +404,7 @@ bool Position::make_move(Move &move) {
 			Bitboards::clear_bit(piece_bitboards[side_to_move][moved_piece], to);
 			position_key ^= Zobrist::pieces[moved_piece + side_to_move * 6][to];
 			position_key ^= Zobrist::pieces[promoted_piece + side_to_move * 6][to];
-			pawns_key ^= Zobrist::pieces[PAWN][to];
+			pawns_key ^= Zobrist::pieces[PAWN + side_to_move * 6][to];
 			material[side_to_move] -= Evaluation::get_piece_value(moved_piece, to, side_to_move);
 			material[side_to_move] += Evaluation::get_piece_value(promoted_piece, to, side_to_move);
 		}
@@ -425,7 +425,7 @@ bool Position::make_move(Move &move) {
 		material[~side_to_move] -= Evaluation::get_piece_value(captured_piece, capture_square, ~side_to_move);
 		moves_history[history_ply].captured_piece = captured_piece;
 		if (captured_piece == PAWN)
-			pawns_key ^= Zobrist::pieces[PAWN][capture_square];
+			pawns_key ^= Zobrist::pieces[PAWN + ~side_to_move * 6][capture_square];
 	}
 	history_ply++;
 	// Castling
