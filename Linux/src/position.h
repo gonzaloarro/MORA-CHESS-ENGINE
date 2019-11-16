@@ -30,29 +30,7 @@
 #include "types.h"
 
 // Constants
-constexpr int MAX_GAME_MOVES = 512;
-constexpr int PIECE_TYPES = 12;
 const std::string INITIAL_POSITION_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-enum Castling_right {
-	WHITE_SHORT = 1,
-	WHITE_LONG = 2,
-	BLACK_SHORT = 4,
-	BLACK_LONG = 8
-};
-
-/*
- * Neccesary info to undo a move.
- */
-struct History_move {
-	Move move;
-	Key position_key;
-	Key pawns_key;
-	int fifty_count;
-	int castling_rights;
-	int enpassant_square;
-	int captured_piece;
-};
 
 /*
  * Class that represents a position on the board.
@@ -103,6 +81,32 @@ public:
 	bool endgame() const;
 
 private:
+
+	// Constants
+	static constexpr int MAX_GAME_MOVES = 512;
+
+	/*
+	 * To set flags representing different castling rights.
+	 */
+	enum Castling_right {
+		WHITE_SHORT = 1,
+		WHITE_LONG = 2,
+		BLACK_SHORT = 4,
+		BLACK_LONG = 8
+	};
+
+	/*
+	 * Neccesary info to undo a move.
+	 */
+	struct History_move {
+		Move move;
+		Key position_key;
+		Key pawns_key;
+		int fifty_count;
+		int castling_rights;
+		int enpassant_square;
+		int captured_piece;
+	};
 
 	// Data members
 	Bitboard piece_bitboards[PLAYERS][PIECE_TYPES / PLAYERS];

@@ -164,30 +164,30 @@ namespace UCI {
 
 		// Double pawn push
 		if (moved_piece == PAWN && abs(to - from) == 16)
-			info |= DoublePawnPush;
+			info |= Move::DoublePawnPush;
 
 		// Castling
 		if (moved_piece == KING && abs(to - from) == 2)
-			info |= Castling;
+			info |= Move::Castling;
 
 		// Promotion
 		if (s.size() == 5) {
-			info |= Promotion;
+			info |= Move::Promotion;
 			switch(s[4]) {
-			case('q'): info |= PromotedQueen; break;
-			case('r'): info |= PromotedRook; break;
-			case('b'): info |= PromotedBishop; break;
+			case('q'): info |= Move::PromotedQueen; break;
+			case('r'): info |= Move::PromotedRook; break;
+			case('b'): info |= Move::PromotedBishop; break;
 			}
 		}
 
 		// Capture
 		int captured_piece = pos.get_piece(to);
 		if (captured_piece != EMPTY) {
-			info |= Capture;
+			info |= Move::Capture;
 		}
 		// Enpassant Capture
 		if (moved_piece == PAWN && to == pos.get_enpassant_square())
-			info |= Enpassant;
+			info |= Move::Enpassant;
 
 		return Move(info, from, to);
 	}
