@@ -4,6 +4,8 @@ Being a software engineering student, I found myself struggling to come with an 
 
 The main goal was for my engine to reach 2000 ELO in the [Computer Chess Rating Lists](https://ccrl.chessdom.com/ccrl/). After a lot of hard work, I think (based on some experiments) MORA CHESS ENGINE is in the 2100-2200 range.
 
+***UPDATE:** MORA CHESS ENGINE 1.0.0 is rated **2182 ELO** under [40 moves in 4 minutes time control](https://www.computerchess.org.uk/ccrl/404/) and **2203** under [40 moves in 40 minutes](https://www.computerchess.org.uk/ccrl/4040/). The new version 1.1.0 is almost the same but I would say that is probably 20 ELO points stronger.*
+
 ## Build
 I've provided binaries for both Windows and Linux. Still, if you want to compile the sources yourself you can use g++ compiler with the following commands:
 
@@ -118,6 +120,7 @@ See the [GNU General Public License](COPYING) for more details.
 - [Computer Chess Rating Lists](https://ccrl.chessdom.com/ccrl/)
 - Robert Hyatt
 - Bruce Moreland
+- Graham Banks
 
 And special thanks to my project director: [Luciano H. Tamargo](http://cs.uns.edu.ar/~lt/site/), who from the very first moment embrace my idea of writing a chess engine and kept me always motivated.
 
