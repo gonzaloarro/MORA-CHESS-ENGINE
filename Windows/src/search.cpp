@@ -242,7 +242,7 @@ namespace Search {
 	    		searched_moves++;
 	        	pos.undo_move();
 	    		// Return if timeout
-	    		if (search_info.nodes & 2047) {
+	    		if ((search_info.nodes & 2047) == 0) {
 	    			if (Time::time_out(search_info.start_time, search_info.time_to_search) || search_info.stop)
 	    				return -1;
 	    		}
@@ -351,7 +351,7 @@ namespace Search {
 	    		int score = -quiescence_search(pos, -beta, -alpha, search_info);
 	    		pos.undo_move();
 	    		// Return if timeout
-	    		if (search_info.nodes & 2047) {
+	    		if ((search_info.nodes & 2047) == 0) {
 	    			if (Time::time_out(search_info.start_time, search_info.time_to_search) || search_info.stop)
 	    				return -1;
 	    		}
